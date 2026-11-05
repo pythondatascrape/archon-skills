@@ -18,6 +18,11 @@ import pytest
 TOOLS = Path(__file__).resolve().parents[1] / "tools"
 
 
+PACK_SHARED = TOOLS.parents[2] / ".shared"  # the fallback exists only inside a checkout of the workflow pack
+
+
+@pytest.mark.skipif(not PACK_SHARED.is_dir(), reason="this copy of the skill is not inside the workflow pack, "
+                    "so there is no .shared/ to fall back to; the installed pack is used")
 @pytest.mark.parametrize("module", ["seed_code", "recall"])
 def test_the_tool_and_the_shared_code_it_uses_import_without_an_installed_pack(tmp_path, module):
     env = {**os.environ, "HOME": str(tmp_path), "PYTHONDONTWRITEBYTECODE": "1"}
