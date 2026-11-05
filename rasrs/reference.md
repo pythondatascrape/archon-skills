@@ -8,8 +8,8 @@
 | Data | `~/.local/share/rasrs/` |
 | Server | launch agent `com.rasrs.serve` (`~/Library/LaunchAgents/com.rasrs.serve.plist`): `rasrs serve --http 127.0.0.1:8787` |
 | Log | `~/Library/Logs/rasrs.log` |
-| Address and tokens | `~/.archon/.env`: `RASRS_URL`, `RASRS_READ_TOKEN`, `RASRS_WRITE_TOKEN` (mode 600) |
-| Project | alias `rasrs`, name `rasrs-server`; the ID is in `rasrs --json token list` or `stats` |
+| Address and tokens | `~/.archon/.env`: `RASRS_URL`, `RASRS_READ_TOKEN`, `RASRS_WRITE_TOKEN`, and per wired project `RASRS_<ALIAS>_READ_TOKEN` / `_WRITE_TOKEN` (mode 600) |
+| Projects | one per wired repo; `status.py` lists each with its fact count, `rasrs --json project list` their IDs. The first is alias `rasrs` (name `rasrs-server`, shared tokens). The workflow repo itself is alias `archonloop` (name `archon-coding-loop`): the workflow's own decisions |
 | Workflow code | `~/.archon/workflows/tasks/.shared/mcp_setup.py` (server entries), `knowledge.py` (client, claim rules), `loop_controller.py` `record_knowledge` (writer), `compile-phase-tasks/tools/seed_memory.py` (seeder) |
 | Repo wiring | `.archon/coding-loop.json` (`mcp_servers.rasrs` with `roles`, `mcp_hint`, `review_mcp_hint`, `knowledge`) and `.archon/compile-phase-tasks.json` (`mcp_servers.rasrs`, `mcp_hint`) |
 
@@ -30,9 +30,11 @@ pkill -f "archon serve"; cd ~ && env -u ANTHROPIC_API_KEY nohup archon serve > ~
 
 ## Tokens
 
-Two tokens exist, both for project rasrs, and both expire about 2027-10-15:
-- `remote:archon_read` has `read` and is used by every AI step.
-- `remote:archon_write` has `read,remember` and is used only by code.
+Each project has a read and a write token; `status.py` lists every token and its expiry.
+- The first project's pair: `remote:archon_read` (`read`, every AI step) and `remote:archon_write`
+  (`read,remember`, code only), in `RASRS_READ_TOKEN` / `RASRS_WRITE_TOKEN`; they expire about 2027-10-15.
+- Each repo wired with `new_project.py` has its own pair, `remote:archon_read_<alias>` and
+  `remote:archon_write_<alias>`, in `RASRS_<ALIAS>_READ_TOKEN` / `_WRITE_TOKEN`, valid a year from wiring.
 
 Renew or replace, with the server stopped:
 
@@ -118,4 +120,8 @@ The authoritative steps ship with rasrs: `rasrs help vps_setup`, `rasrs help cut
 
 - **2026-10-14:** set up.
 - **First seed was discarded:** it stored amendments before their originals, so they weren't linked. That store is kept at `~/.local/share/rasrs.before-reset-2026-10-14` and is safe to delete.
-- **Current store:** 162 facts, 4 of them superseded.
+- **Store sizes:** `status.py` shows each project's facts.
+- **2026-11-05:** the workflow repo was registered as project `archonloop`. Its first 13 facts record the
+  workflow changes of that week (prose audit gaps 1-5, the coder guard, the Jev ledger path, the skills
+  repository, pinned coder skills, the change method), each with its merge commit as evidence. They were
+  written once, at the owner's request; later workflow decisions are added the same way only when asked.
