@@ -68,7 +68,10 @@ the detail.
 | Seed or re-seed decisions | reference.md › Seeding |
 | Link memory to the code (rules → functions → tests, module maps), after each phase merge | `tools/seed_code.py <repo> --dry-run`, then without it; reruns write only what changed |
 | Connect another repo | `tools/new_project.py --repo R --alias A --dry-run`, then without `--dry-run` (reference.md › Wiring a repo) |
+| What the workflow itself decided (coder guard, skill pins, change method) | `recall.py "<query>" --project archonloop` |
 | Move to the Ubuntu laptop | reference.md › Moving |
+
+This skill's home is the `archon-skills` repository (`rasrs/`); the skill server serves it from there.
 
 The user's own plain-language guide is `~/Desktop/rasrs_usage.md`. Keep it in step when
 something it describes changes. The Write tool cannot write to ~/Desktop: write the file in the
