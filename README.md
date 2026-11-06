@@ -7,7 +7,6 @@ Claude Code skills for running Archon workflows, one folder per skill (each hold
 | `archon-cli` | Drive Archon through its CLI: run, manage and author workflows |
 | `archon-liveview` | Build and fix live browser views of Archon workflow runs |
 | `coding-loop` | Operate and troubleshoot the coding-loop workflow |
-| `coding-taskplan-loop` | Operate the task-plan fork of the coding loop |
 | `rasrs` | Operate the rasrs project-memory server and its Archon wiring |
 | `decision-record` | Create or check numbered decision records |
 | `fingerprint-registry` | Check or update a registry of file fingerprints (sha256) |

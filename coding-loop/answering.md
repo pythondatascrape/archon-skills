@@ -11,10 +11,12 @@
 | `red_command` | the exact RED command(s), one per line |
 | approval | `approve` (commits and pushes exactly the reviewed tree) or `reject` naming task ids `01.13: ...` |
 
-The user replies in Archon's web console by choosing **Answer** (or Approve/Reject). Its
-generic **Continue** sends decision `approved` with the text: the controller takes that as the
-answer at a question and as approval at the approval gate, where the console shows no separate
-Approve button (user decision 2026-10-08; coleam00/Archon#3953). From a terminal:
+The user replies in Archon's web console by choosing **Answer**, **Approve** or **Reject**: since
+Archon 0.13 the gate is an attention wait with those three choices, and any other answer is
+refused while the run stays paused. Runs launched on older releases used the old gate, whose
+generic **Continue** sent decision `approved` with the text: the controller still takes that as
+the answer at a question and as approval at the approval gate (user decision 2026-10-08;
+coleam00/Archon#3953). From a terminal:
 `tools/answer.py <project> --phase XX --file reply.txt [--amended]` checks and sends it, then
 reports ACCEPTED or NOT ACCEPTED.
 
