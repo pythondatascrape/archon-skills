@@ -20,10 +20,10 @@ Each step needs a clean, pushed base branch. Commit `docs/tasks/phase-XX.json` a
 | What | Path |
 |---|---|
 | Workflow | `~/.archon/workflows/tasks/coding-loop/` (`coding-loop.yaml`, `scripts/`, `hooks/bash_guard.py`, `coder-skills.json`, `viz/`, `tests/`, `templates/python/`, `spec/`, `audit/`) |
-| Tools (`coding-loop/tools/`) | `status.py` (what is it doing), `answer.py` (answer a gate), `stop.py` (stop a run gracefully), `resume_after_limit.py`, `learn.py` (every phase side by side), `plan_check.py` (plan wiring warnings), `pin_skill.py` (show or pin coder skills), `pyapi.py`, `compare_usage.py` |
+| Tools (`coding-loop/tools/`) | `status.py` (what is it doing), `answer.py` (answer a gate), `stop.py` (stop a run gracefully), `resume_after_limit.py`, `learn.py` (every phase side by side), `plan_check.py` (plan wiring warnings), `skill_status.py` (each coder skill's current version on the skill server), `pyapi.py`, `compare_usage.py` |
 | Shared controller | `~/.archon/workflows/tasks/.shared/loop_*.py`, plus `jev.py`, `knowledge.py`, `skill_fetch.py`, `usage_policy.json` |
 | Coder scopes (while a coder runs) | `<project>/.coding-loop/coder-active` and `coder-scopes.json`; refusals in `guard-refusals.jsonl` |
-| Skill cache | `~/.archon/skill-cache/` (pinned coder skills, checksum-verified) |
+| Skill cache | `~/.archon/skill-cache/` (coder skills from the skill server, checksum-verified) |
 | Jev outcome ledger | `~/.archon/jev/workflow_jev.json` (`CODING_LOOP_JEV_LEDGER` overrides) |
 | Phase state | `~/.archon/workspaces/_folder/<project>/state/coding-loop/phase-XX/` (`state.json`, `transitions.jsonl`, `metrics.jsonl`, `evidence/NNNN-*`, `exports/`, `baselines/`, `locks/`) |
 | Run logs | `~/.archon/workspaces/_folder/<project>/logs/<run-id>.jsonl` |
@@ -91,13 +91,17 @@ this guard; the fix is the plan (`files`), not the hook.
 
 ## Coder skills
 
-`coding-loop/coder-skills.json` routes tasks to skills by task type or name pattern. A route with a
-`pin` (skill id and version) is fetched from the skill server at exactly that version and
-checksum-verified into `~/.archon/skill-cache/`; it needs `SKILL_SERVER_URL` and `SKILL_SERVER_TOKEN`
-in `~/.archon/.env`. A pin that cannot be fetched, a routed skill that is not installed, or one
-without a `skill_checks` command stops the run before it starts, naming the task.
-`tools/pin_skill.py` lists the pins; `pin_skill.py NAME SKILL_ID` pins a skill to the server's
-active version.
+`coding-loop/coder-skills.json` routes tasks to skills by task type or name pattern, and names each
+skill by its `skill_id` on the skill server, never a version: skills are updated on the server and
+live only there. At every launch the loop asks the server for each routed skill's active version,
+fetches it unless a verified copy of that version is cached, checks every file's sha256 into
+`~/.archon/skill-cache/`, and links `~/.claude/skills/<name>` to it; a project's own copy is never
+used instead. The run records the version it used (`skill_versions` in state.json, and the
+scorecard). It needs `SKILL_SERVER_URL` and `SKILL_SERVER_TOKEN` in `~/.archon/.env`. A server that
+cannot be reached, a skill it does not know, or a routed skill without a `skill_checks` command
+stops the run before it starts, naming the task; an older cached copy is never used in its place.
+A skill update reaches the next launch (a relaunch too), never a running run.
+`tools/skill_status.py` shows each skill's current version on the server.
 
 ## Parallel coding
 
