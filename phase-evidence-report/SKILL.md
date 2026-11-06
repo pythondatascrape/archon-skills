@@ -4,7 +4,7 @@ description: Write or check a phase's evidence report (commit, tool versions, se
 ---
 
 1. If the project has no config yet, create one (JSON); every key is optional and `{phase}` is replaced:
-   `plan`, `report`, `versions` ({name: command}), `result_command`, `advisory_command`,
+   `plan`, `report` (`.md` for a Markdown report, otherwise JSON), `versions` ({name: command}), `result_command`, `advisory_command`,
    `static` ({section: object}), `owner_inputs` ({"file", "required": [keys]}), `acceptance_pattern`.
 2. `python3 ${CLAUDE_SKILL_DIR}/scripts/evidence.py build --phase NN --config <config>`
    - Exit 2: it lists every owner fact still missing and the file to put them in. Ask the owner for all of them in one question.
