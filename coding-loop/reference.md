@@ -48,6 +48,17 @@ the new head. A CI file it cannot run as written (GitHub `${{ }}` expressions, a
 completes with "CI not run" in the history, never a false pass. By hand, from the project folder:
 `python3 ~/.archon/workflows/tasks/coding-loop/tools/manual_ci.py [PR number|commit] [--no-post]`.
 
+The same CI steps also run before approval, in SECURITY_PASSED once the reviews and project checks pass,
+on a clean copy of the reviewed code (a commit made from the working tree that no branch points to;
+nothing posted), so a git-ignored leftover in the project folder (an old build) cannot hide a failure.
+Passed: approval. Failed: a P1 check finding for the failing step's command, fixed like a failing
+project check; that command then runs with the project checks until it passes, and the clean run
+repeats on the changed code. Both runs first check the tool versions the CI file sets up
+(`actions/setup-node`, `actions/setup-python`: version, version file, or a simple matrix) against
+this machine's `node` / `python3`; a mismatch stops the run naming the version to install
+("asks for Node 24, but this machine's node is v26.10.0"). Install it, check `node --version` where
+Archon is started, relaunch.
+
 `PR_CREATED` keeps its name but only makes the branch: the PR opens at approval (PUSH ->
 PR_UPDATED). Project checks (`phase_validation`, the full suite) run at the first PHASE_GREEN,
 at a fresh one, and while a check finding is open; a review fix round's PHASE_GREEN runs the task
