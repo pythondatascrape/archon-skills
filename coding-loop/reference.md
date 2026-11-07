@@ -20,7 +20,7 @@ Each step needs a clean, pushed base branch. Commit `docs/tasks/phase-XX.json` a
 | What | Path |
 |---|---|
 | Workflow | `~/.archon/workflows/tasks/coding-loop/` (`coding-loop.yaml`, `scripts/`, `hooks/bash_guard.py`, `coder-skills.json`, `viz/`, `tests/`, `templates/python/`, `spec/`, `audit/`) |
-| Tools (`coding-loop/tools/`) | `status.py` (what is it doing), `answer.py` (answer a gate), `stop.py` (stop a run gracefully), `resume_after_limit.py`, `learn.py` (every phase side by side), `plan_check.py` (plan wiring warnings), `skill_status.py` (each coder skill's current version on the skill server), `pyapi.py`, `compare_usage.py` |
+| Tools (`coding-loop/tools/`) | `status.py` (what is it doing), `answer.py` (answer a gate), `stop.py` (stop a run gracefully), `resume_after_limit.py`, `learn.py` (every phase side by side), `plan_check.py` (plan wiring warnings), `skill_status.py` (each coder skill's current version on the skill server), `manual_ci.py` (the project's GitHub CI steps run here, result posted on the commit), `pyapi.py`, `compare_usage.py` |
 | Shared controller | `~/.archon/workflows/tasks/.shared/loop_*.py`, plus `jev.py`, `knowledge.py`, `skill_fetch.py`, `usage_policy.json` |
 | Coder scopes (while a coder runs) | `<project>/.coding-loop/coder-active` and `coder-scopes.json`; refusals in `guard-refusals.jsonl` |
 | Skill cache | `~/.archon/skill-cache/` (coder skills from the skill server, checksum-verified) |
@@ -38,7 +38,15 @@ INITIALIZE -> PR_CREATED -> SUBTASK_SELECTED -> TEST_AUTHORING -> RED_VALIDATION
 IMPLEMENTATION -> GREEN_VALIDATION -> ... -> PHASE_GREEN (all commands + project checks) ->
 ADVERSARIAL_REVIEW <-> ADVERSARIAL_REMEDIATION -> ADVERSARIAL_PASSED -> SECURITY_REVIEW <->
 SECURITY_REMEDIATION -> SECURITY_PASSED -> AWAITING_HUMAN_APPROVAL -> HUMAN_APPROVED -> COMMIT
--> PUSH -> PR_UPDATED -> COMPLETE. Any state -> AWAITING_CLARIFICATION; failures -> STOPPED.
+-> PUSH -> PR_UPDATED -> [CI_CHECK ->] COMPLETE. Any state -> AWAITING_CLARIFICATION; failures -> STOPPED.
+
+CI_CHECK runs only when the project has a GitHub CI file (`.github/workflows/*`, run on push or
+pull_request). The `ci` node runs its `run` steps on a fresh copy of the PR's head on this machine
+(`.shared/manual_ci.py`) and posts "manual-ci (<os>)" on the commit. Passed: COMPLETE. Failed:
+STOPPED naming the step and its last lines; fix the branch, push, relaunch, and CI runs again on
+the new head. A CI file it cannot run as written (GitHub `${{ }}` expressions, a non-bash shell)
+completes with "CI not run" in the history, never a false pass. By hand, from the project folder:
+`python3 ~/.archon/workflows/tasks/coding-loop/tools/manual_ci.py [PR number|commit] [--no-post]`.
 
 `PR_CREATED` keeps its name but only makes the branch: the PR opens at approval (PUSH ->
 PR_UPDATED). Project checks (`phase_validation`, the full suite) run at the first PHASE_GREEN,
