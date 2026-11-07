@@ -89,7 +89,8 @@ plugin is installed (`"lsp": false` turns it off for a project).
 
 `hooks/bash_guard.py`, registered once in `~/.claude/settings.json` as a PreToolUse hook with matcher
 `Bash|Read|Write|Edit|MultiEdit|NotebookEdit`. Without the full matcher the loop stops before any
-coder starts and names the missing tools. While a coder runs it refuses: context-flooding reads and
+coder starts and names the missing tools. It checks only the loop's coders (Archon's step label
+`ARCHON_NODE_EXECUTION` names a `code-` step); any other session passes through. While a coder runs it refuses: context-flooding reads and
 commands, Git changes, whole-suite test runs, any write outside the coder's working directory (a
 prototype in /tmp), a write to a frozen file, and, for a strict coder, a write to a file not in its
 permitted files. Strict: every test-writing step, and any coder the project's `small_fix` policy does
