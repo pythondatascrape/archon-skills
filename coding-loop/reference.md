@@ -57,7 +57,10 @@ repeats on the changed code. Both runs first check the tool versions the CI file
 (`actions/setup-node`, `actions/setup-python`: version, version file, or a simple matrix) against
 this machine's `node` / `python3`; a mismatch stops the run naming the version to install
 ("asks for Node 24, but this machine's node is v26.10.0"). Install it, check `node --version` where
-Archon is started, relaunch.
+Archon is started, relaunch. A matching version is not always enough: a run uses the first `node` on
+the PATH of the process that started it (the Archon server, or the terminal that ran the command),
+and some builds leave features out (Homebrew's Node cannot build single-file programs). Check `which
+node` there too.
 
 `PR_CREATED` keeps its name but only makes the branch: the PR opens at approval (PUSH ->
 PR_UPDATED). Project checks (`phase_validation`, the full suite) run at the first PHASE_GREEN,
