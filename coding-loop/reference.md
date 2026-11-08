@@ -53,14 +53,16 @@ on a clean copy of the reviewed code (a commit made from the working tree that n
 nothing posted), so a git-ignored leftover in the project folder (an old build) cannot hide a failure.
 Passed: approval. Failed: a P1 check finding for the failing step's command, fixed like a failing
 project check; that command then runs with the project checks until it passes, and the clean run
-repeats on the changed code. Both runs first check the tool versions the CI file sets up
-(`actions/setup-node`, `actions/setup-python`: version, version file, or a simple matrix) against
-this machine's `node` / `python3`; a mismatch stops the run naming the version to install
-("asks for Node 24, but this machine's node is v26.10.0"). Install it, check `node --version` where
-Archon is started, relaunch. A matching version is not always enough: a run uses the first `node` on
-the PATH of the process that started it (the Archon server, or the terminal that ran the command),
-and some builds leave features out (Homebrew's Node cannot build single-file programs). Check `which
-node` there too.
+repeats on the changed code. The loop chooses the tools for its checks instead of inheriting them: it asks
+your login shell for the PATH a new terminal gets, picks the first install of each version the CI
+file sets up (`actions/setup-node`, `actions/setup-python`: version, version file, or a simple
+matrix), looking on that PATH and then the inherited one, and puts its folder first on the PATH of
+every task command, project check and CI step. With no Node version asked for, it uses a new
+terminal's Node. So a run does not depend on the PATH of whoever started or answered it. No install
+of that version anywhere stops the run naming it ("asks for Node 24, but this machine's node is
+v26.10.0 …"). Install it, check `node --version` in a new terminal, relaunch. A build that reports
+the right version can still lack a feature (Homebrew's Node cannot build single-file programs):
+keep it off a new terminal's PATH, or behind the build you want.
 
 `PR_CREATED` keeps its name but only makes the branch: the PR opens at approval (PUSH ->
 PR_UPDATED). Project checks (`phase_validation`, the full suite) run at the first PHASE_GREEN,
