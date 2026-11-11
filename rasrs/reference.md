@@ -81,6 +81,17 @@ then commit `.archon/` on a branch. The manual steps, for reference:
 3. Edit the repo's `.archon/compile-phase-tasks.json`: add the same server without `roles`, plus an `mcp_hint`.
 4. Check with `status.py --repo REPO`. Never write a token into a repo file; status flags it.
 
+### Automatic connection (2026-11-11)
+
+The coding loop and compile-phase-tasks connect any repo that names no memory, at the first launch in
+it: their preflight runs `new_project.py --repo R --alias <folder name> --no-repo-files --registry
+--ignore-run <run id>`. That registers the project and its tokens and records the repo in the shared
+list `~/.archon/memory-projects.json` (`MEMORY_PROJECTS_FILE`), which both workflows merge into the
+repo's own settings (the repo's keys win). No repo file changes. That launch stops once: restart
+Archon (no run active), then relaunch. `"knowledge": false` in `.archon/coding-loop.json` opts a repo out. The workflows find this tool through
+`MEMORY_CONNECT` in `~/.archon/.env` (its full path); unset, a launch in an unconnected repo stops
+and says so.
+
 ## Where it connects, and why
 
 | Workflow | Step | Access | Why |

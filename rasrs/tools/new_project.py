@@ -147,9 +147,38 @@ def _rasrs(*args: str) -> dict | list:
     return json.loads(out) if out.strip() else {}
 
 
-def _live_runs() -> list[str]:
+def _live_runs(ignore: str = "") -> list[str]:
+    """Running or paused Archon runs; `ignore` (a run id) leaves out the run that is calling."""
     out = _run("archon", "workflow", "runs", check=False).stdout
-    return [ln for ln in out.splitlines() if re.search(r"\b(running|paused)\b", ln)]
+    mine = ignore[:8]
+    return [ln for ln in out.splitlines() if re.search(r"\b(running|paused)\b", ln)
+            and not (mine and ln.split() and ln.split()[0] == mine)]
+
+
+def registry_path() -> Path:
+    """The shared list of connected repos the workflows read (MEMORY_PROJECTS_FILE moves it)."""
+    return Path(os.environ.get("MEMORY_PROJECTS_FILE") or Path.home() / ".archon" / "memory-projects.json")
+
+
+def registry_entry(alias: str) -> dict:
+    """Only the rasrs settings for each workflow: no starter gates, so any language keeps its own."""
+    loop, comp = wire({}, {}, alias)
+    return {"alias": alias, "coding-loop": loop, "compile-phase-tasks": comp}
+
+
+def record_registry(path: Path, repo: Path, alias: str) -> None:
+    """Add or refresh one repo in the shared list (mode 600), keeping the others."""
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        doc = {}
+    projects = doc.get("projects") if isinstance(doc.get("projects"), dict) else {}
+    projects[str(repo)] = registry_entry(alias)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"projects": projects}, indent=2) + "\n", encoding="utf-8")
+    tmp.chmod(0o600)
+    tmp.replace(path)
 
 
 def _server(action: str) -> None:
@@ -193,6 +222,11 @@ def main() -> None:
     ap.add_argument("--name", help="project name (default: <alias>-project; must differ from the alias)")
     ap.add_argument("--lang", default="go", help="starter gates for this language (go, python; others get none)")
     ap.add_argument("--dry-run", action="store_true", help="show what would change; touch nothing")
+    ap.add_argument("--no-repo-files", action="store_true",
+                    help="write no .archon/ files in the repo (the workflows read the shared list instead)")
+    ap.add_argument("--registry", action="store_true",
+                    help="record the repo in the shared list of connected repos (MEMORY_PROJECTS_FILE)")
+    ap.add_argument("--ignore-run", default="", help="a run id to leave out of the live-run check (the caller)")
     a = ap.parse_args()
     repo, alias = a.repo.expanduser().resolve(), a.alias
     name = a.name or f"{alias}-project"
@@ -213,13 +247,17 @@ def main() -> None:
         loop2, comp2 = wire(loop, comp, alias)
         plan = [f"register project {name!r} (alias {alias})" if not mine else f"project {alias} is registered",
                 f"create tokens {n['read_principal']}, {n['write_principal']} -> ~/.archon/.env "
-                f"{n['read_env']}, {n['write_env']}" if need_tokens else "tokens are in ~/.archon/.env",
-                f"write {loop_p.relative_to(repo)}" if loop2 != loop or not loop_p.exists() else "coding-loop.json wired",
-                f"write {comp_p.relative_to(repo)}" if comp2 != comp or not comp_p.exists() else "compile-phase-tasks.json wired"]
+                f"{n['read_env']}, {n['write_env']}" if need_tokens else "tokens are in ~/.archon/.env"]
+        if not a.no_repo_files:
+            plan += [f"write {loop_p.relative_to(repo)}" if loop2 != loop or not loop_p.exists() else "coding-loop.json wired",
+                     f"write {comp_p.relative_to(repo)}" if comp2 != comp or not comp_p.exists()
+                     else "compile-phase-tasks.json wired"]
+        if a.registry:
+            plan.append(f"record {repo} as {alias} in {registry_path()}")
         print("\n".join(f"- {s}" for s in plan))
         if a.dry_run:
             return
-        if (not mine or need_tokens) and (live := _live_runs()):
+        if (not mine or need_tokens) and (live := _live_runs(a.ignore_run)):
             raise SetupError("an Archon run is running or paused; wait for it to end (the server stops briefly):\n  "
                              + "\n  ".join(live))
         if not mine or need_tokens:
@@ -239,12 +277,16 @@ def main() -> None:
                     ENV_FILE.chmod(0o600)
             finally:
                 _server("start")
-        _write_json(loop_p, loop2)
-        _write_json(comp_p, comp2)
+        if not a.no_repo_files:
+            _write_json(loop_p, loop2)
+            _write_json(comp_p, comp2)
+        if a.registry:
+            record_registry(registry_path(), repo, alias)
     except SetupError as exc:
         sys.exit(f"new_project: {exc}")
     print(_run(sys.executable, str(Path(__file__).parent / "status.py"), "--repo", str(repo), check=False).stdout)
-    print("Next: restart Archon so it loads the new .env lines, then commit .archon/ on a branch.")
+    print("Next: restart Archon so it loads the new .env lines"
+          + ("." if a.no_repo_files else ", then commit .archon/ on a branch."))
 
 
 if __name__ == "__main__":
