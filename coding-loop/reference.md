@@ -45,7 +45,7 @@ pull_request). The `ci` node runs its `run` steps on a fresh copy of the PR's he
 (`.shared/manual_ci.py`) and posts "manual-ci (<os>)" on the commit. Passed: COMPLETE. Failed:
 STOPPED naming the step and its last lines; fix the branch, push, relaunch, and CI runs again on
 the new head. A CI file it cannot run as written (GitHub `${{ }}` expressions, a non-bash shell)
-completes with "CI not run" in the history, never a false pass. By hand, from the project folder:
+completes with "CI not run" in the history, never a false pass. An `actions/checkout` step with a relative `path:` gets its own fresh copy of the commit at that path, for its job only; a checkout of another repository or a path it cannot reproduce counts as cannot run as written. A step whose `working-directory` does not exist fails at that step, naming the folder. By hand, from the project folder:
 `python3 ~/.archon/workflows/tasks/coding-loop/tools/manual_ci.py [PR number|commit] [--no-post]`.
 
 The same CI steps also run before approval, in SECURITY_PASSED once the reviews and project checks pass,
