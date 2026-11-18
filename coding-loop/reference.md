@@ -154,6 +154,11 @@ guards all workflows). If a run fails with `exit 143` and no output, `status.py`
 `RUN FAILED: node '<id>' was killed (exit 143) after N s`: raise that node's timeout, then
 abandon and relaunch.
 
+After a machine restart, `archon serve` relaunches an interrupted run by itself: it cancels the
+old run and starts a new one marked `relaunched_from` it (2026-11-17, Archon 0.13.2). Read
+`status.py` before marking anything stopped or relaunching by hand; a run that was paused at a
+question comes back paused at the same question.
+
 ## Live viewer
 
 `http://127.0.0.1:8765` (`viz/server.py`, page in `viz/page.html`, read per request). Start it
