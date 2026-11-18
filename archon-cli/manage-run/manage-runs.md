@@ -53,7 +53,7 @@ For reusable alternate setups, prefer a config layer instead of long flag lists
 | One run with raw event rows | `archon workflow get <run-id> --verbose --events --json` |
 | Active runs (this project) | `archon workflow status --json` |
 | Active runs (all projects) | `archon workflow status --all --json` |
-| Block until the run ends or needs a human decision | `archon workflow wait <run-id> --json` |
+| Block until the run ends or needs a human decision | `archon workflow wait <run-id> --json` (once any tool call passes 30 min it returns at once with `result: attention`, `kind: stalled_tool_calls`, and keeps doing so: then watch the run's state in a loop instead) |
 | Resolve a gate with any declared decision | `archon workflow respond <run-id> <decision> [text]` |
 | Approve (default vocabulary) | `archon workflow approve <run-id> [text]` |
 | Reject (default vocabulary) | `archon workflow reject <run-id> "<reason>"` |

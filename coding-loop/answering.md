@@ -84,6 +84,30 @@ reports ACCEPTED or NOT ACCEPTED.
   resolved (phase 11 ADV-029: `busy` is in the state enum, but `allOf` allows it only with
   status `ok`).
 
+## Mistakes that cost a stop (2026-11-17)
+
+- **A decided fix needs a task that acts now.** Answering a review question only records the
+  decision for the next review to check. If the files belong to another task, amend the plan (or
+  reroute) in the same answer; otherwise the next full check fails on the same problem and the run
+  stops again.
+- **Never tell a coder to run the whole suite.** The loop runs it after the coder's DONE anyway;
+  the instruction doubled a 28-minute wait. Ask for the focused test file only.
+- **An owner confirming a finding as intended (a policy, not a defect)** must not go as a coder
+  answer "keep it as written": the fix changes nothing and the finding goes `stuck`, one at a time.
+  Ask the owner once for all of them, then answer each stuck gate `resolve: <reason>`.
+  `answer.py` then prints NOT ACCEPTED although the transitions show "resolved by human"; trust the
+  transitions.
+- **A plan edit sent with a rejection at approval** (`--decision reject --amended`) is not recorded
+  ("did not record the plan amendment"). Make plan edits at a question pause, and check status after.
+- **"PLAN EDITED OUTSIDE A PAUSE" can be stale:** with no task active, status compares with the plan
+  snapshot taken when the run paused, before an amendment it then accepted. Check the transitions
+  for "plan amended by human" before acting on it.
+- **Owner results:** reviewers mark any row the owner did not supply as NOT MET (start and publish
+  times, test counts, the review of the published package, audit rows). Collect them while the
+  owner runs the checks, not afterwards.
+- **A check the plan's own order makes impossible** (it deletes the test user before the check that
+  needs one) is reported to the owner before the checks start, not found halfway.
+
 Write the answer as a fenced block ready to paste, then a two-line plain-language summary.
 
 ## Approval review

@@ -45,7 +45,8 @@ next), and only then the technical detail. The user asks "plain language?" when 
 3. **Before telling the user to relaunch after a fix, dry-run the resume on a COPY** of the
    repo and the phase state (`fixing.md` has the recipe). Two relaunches failed on 2026-10-07
    because this was skipped.
-4. **`reroute` reads every task id in the answer text.** Mention only the tasks you route to.
+4. **`reroute` and `reject` read every task id in the text.** Mention only the tasks you route to:
+   "after the 06.8 fix" in a rejection for 06.12 reopened 06.8 too (2026-11-18).
 5. **Amend first, then say "answer now".** The controller reads a plan amendment only when the
    answer arrives; check the edit is on disk before the user answers (or use `answer.py --amended`).
 6. **Verify before claiming.** Run the checks fresh on the exact tree; read the actual code for
