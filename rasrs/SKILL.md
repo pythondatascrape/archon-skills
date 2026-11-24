@@ -68,6 +68,7 @@ the detail.
 | Seed or re-seed decisions | reference.md › Seeding |
 | Link memory to the code (rules → functions → tests, module maps), after each phase merge | `tools/seed_code.py <repo> --dry-run`, then without it; reruns write only what changed |
 | Connect another repo | `tools/new_project.py --repo R --alias A --dry-run`, then without `--dry-run` (reference.md › Wiring a repo) |
+| Replace wrong facts from a list the owner approved | `tools/supersede_facts.py <approved.json> --plan-out plan.md` (practice pass, writes nothing); only after the owner's yes to that plan, add `--write`. Each correcting fact supersedes its old one; nothing is deleted |
 | What the workflow itself decided (coder guard, skill pins, change method) | `recall.py "<query>" --project archonloop` |
 | Move to the Ubuntu laptop | reference.md › Moving |
 
